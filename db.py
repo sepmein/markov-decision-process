@@ -4,15 +4,14 @@ import numpy as np
 
 UPDATED = True
 
-
 class DB:
     """
         DB interface for markov decision process
         for CRUD functions of state and value
     """
 
-    def __init__(self, db_name, top_exceed=1000000):
-        self.client = MongoClient()
+    def __init__(self, db_name, top_exceed=1000000, host='localhost'):
+        self.client = MongoClient(host)
         self.db = self.client[db_name]
         self.col_states = self.db.states
         self.top_exceed = top_exceed
@@ -52,7 +51,7 @@ class DB:
         try:
             bulk.execute()
         except BulkWriteError as bwe:
-            print bwe.details
+            print(bwe.details)
 
     def push(self, state, value):
         """push a data to in memory data"""
@@ -149,7 +148,7 @@ class DB:
 
     def update_state_in_memory(self, index, value):
         self.values[index] = value
-        self.updated_tags[index] = True 
+        self.updated_tags[index] = True
 
     def find_values(self, states, default_value):
         """get values"""
