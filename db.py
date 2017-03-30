@@ -27,9 +27,10 @@ class DB:
         values = []
         updated = []
         for data in datas:
-            states.append(data['state'])
-            values.append(data['value'])
-            updated.append(False)
+            if data['value'] != 0.0:
+                states.append(data['state'])
+                values.append(data['value'])
+                updated.append(False)
         self.states = np.array([state for state in states])
         self.values = np.array([value for value in values])
         self.updated_tags = np.array([tag for tag in updated])
@@ -87,7 +88,7 @@ class DB:
         result = self.col_states.find_one({'state': state.tolist()})
         return result
 
-    def find_value(self, state):
+    def find_value(self, state, default_value):
         """
             find state, first search in memory then in database
         """
@@ -95,16 +96,17 @@ class DB:
         value = None
         in_memory = None
         if isinstance(index, int):
+            # value in memory
             value = self.values[index]
             in_memory = True
         else:
-            if self.updated_tags.shape[0] < self.top_exceed:
-                pass
+            # value not in memory
+            result = self.find_state_in_db(state)
+            if result:
+                value = result['value']
             else:
-                result = self.find_state_in_db(state)
-                if result:
-                    value = result['value']
-                    in_memory = False
+                value = default_value
+            in_memory = False
         return index, value, in_memory
 
     def store_state_in_memory(self, state, value):
@@ -126,13 +128,13 @@ class DB:
         }, upsert=True)
         return result
 
-    def store_state(self, state, value):
+    def store_state(self, state, value, default_value):
         """
             store state in memory first
             if memory is full, pop out the first record, then store the poped record to database
         """
         in_memory_number = self.values.shape[0]
-        index,  previous_value,  in_memory = self.find_value(state)
+        index,  previous_value,  in_memory = self.find_value(state, default_value)
         if previous_value == value:
             return
         elif in_memory:
@@ -155,7 +157,7 @@ class DB:
         """get values"""
         v = []
         for state in states:
-            result = self.find_value(state)
+            result = self.find_value(state, default_value)
             if result and 'value' in result:
                 value = result['value']
                 v.append(value)
