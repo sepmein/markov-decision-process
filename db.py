@@ -47,12 +47,15 @@ class DB:
         # indexes = np.argwhere(self.updated_tags == True)
         # if indexes.shape[0] == 0:
         # return
-        for index, state in enumerate(self.states):
+        index = int(0)
+        for state in self.states:
+            print(state)
             bulk.find({'state': state.tolist()}).upsert().update({
                 '$set': {
-                    'value': self.values[index].tolist()[0]
+                    'value': self.values[index].tolist()
                 }
             })
+            index = index + int(1)
         try:
             bulk.execute()
             self.states = np.empty((0, 8, 8), np.int8)
