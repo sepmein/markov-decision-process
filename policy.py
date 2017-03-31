@@ -29,8 +29,8 @@ class Policy:
         """given a state and actions, calculate the optimal action"""
         # at some rate select random action
         # return optimal policy otherwise
-        next_states_values = self.db.find_values(
-            next_states, default_value=self.default_value)
+        next_states_values = np.array([0.0 for state in next_states])
+            # self.db.find_values(next_states, default_value=self.default_value)
         if random() < self.tao:
             random_index = int(actions.shape[0] * random())
             value = bellman_quality_equation(rewards[random_index], self.gamma,
